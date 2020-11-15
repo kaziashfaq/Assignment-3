@@ -19,6 +19,10 @@ app.use(express.static(path.join(__dirname, "public")));
 io.on("connection", (socket) => {
   userCount++;
 
+  //Reset chat log on the first user connection
+  if(userCount === 1){
+    messages.splice(0,messages.length);
+  }
   //Create user name for a new user
   for(let i = 0; i < users.length; i++){
     if(users[i].id === socket.id) {
@@ -31,11 +35,11 @@ io.on("connection", (socket) => {
       user_name = "user" + (socket.id).toString();
       addUser(socket.id,user_name,userCount,userColor);
     }
-  // //display chat log if more than 2 people are connected
-  // if(userCount >= 2)
-  // {
-  // socket.emit("chatlog",messages);
-  // }
+  //display chat log if more than 2 people are connected
+  if(userCount >= 2)
+  {
+  socket.emit("chatlog",messages);
+  }
 
   //Update the user list
   io.emit("updateUserList", users);

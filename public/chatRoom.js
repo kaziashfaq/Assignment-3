@@ -52,7 +52,8 @@ function updateList(users){
 }
 
 function displayLog(messages) {
-  for(let i = messages.length - 1; i >  0; i--) {
+  display.innerHTML = "";
+  for(let i = 0; i < messages.length;i++) {
     let item = document.createElement("LI");
     item.appendChild(document.createTextNode(messages[i].mesg));
     display.appendChild(item);
