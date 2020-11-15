@@ -9,7 +9,10 @@ body {
   font-family: arial;
   font-size: 13px;
   background-color: Grey;
-
+  border: 2px;
+  border-color: black;
+  border-style:solid;
+  margin:auto;
 }
 #container {
   margin: auto;

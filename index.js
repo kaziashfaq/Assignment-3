@@ -177,9 +177,10 @@ function checkMessageForColor(id,msg){
     for(let i = 0; i < users.length;i++){
       if(users[i].id === id) {
         users[i].userColor = userColor;
+        return "A color change request has been made";
       }
     }
-    return "User color has been changed";
+
   }
 
   return msg;
