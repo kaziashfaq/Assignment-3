@@ -4,19 +4,13 @@ const display = document.getElementById("messages");
 const chatSpace = document.getElementById("chatSpace");
 const userList = document.getElementById("usernames");
 const userColr = "Black";
-clientSocket.on("chat message", (msg) => {
-  //console.log(msg);
-  displayMessage(msg);
+clientSocket.on("chat message", (id,msg) => {
+  displayMessage(id, msg);
   chatSpace.scrollTop = chatSpace.scrollHeight;
 });
 
 clientSocket.on("updateUserList", (users) => {
   updateList(users);
-});
-
-clientSocket.on("personalMessage", (msg) => {
-  displayPersonalMessage(msg);
-  chatSpace.scrollTop = chatSpace.scrollHeight;
 });
 
 clientSocket.on("chatlog", (messages) => {
@@ -34,9 +28,12 @@ chat.addEventListener("submit", (evt) => {
 });
 
 //Display message
-function displayMessage(msg) {
+function displayMessage(id,msg) {
   let item = document.createElement("LI");
   item.appendChild(document.createTextNode(msg));
+  if(id === clientSocket.id) {
+    item.style.fontWeight = "bold";
+  }
   display.appendChild(item);
 }
 
@@ -53,12 +50,7 @@ function updateList(users){
     userList.appendChild(item);
   }
 }
-function displayPersonalMessage(msg) {
-  let item = document.createElement("LI");
-  item.appendChild(document.createTextNode(msg));
-  item.style.fontWeight = "bold";
-  display.appendChild(item);
-}
+
 function displayLog(messages) {
   for(let i = messages.length - 1; i >  0; i--) {
     let item = document.createElement("LI");

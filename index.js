@@ -9,9 +9,9 @@ let messages = []; // Need to be implemented later
 let userCount = 0;
 let userColor = "black";
 let nameChange = false;
+let nameExist = false;
 let newUser = true;
 let user_name = "kazi";
-
 
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -31,25 +31,30 @@ io.on("connection", (socket) => {
       user_name = "user" + (socket.id).toString();
       addUser(socket.id,user_name,userCount,userColor);
     }
-  //display chat log if more than 2 people are connected
-  if(userCount >= 2)
-  {
-  socket.emit("chatlog",messages);
-  }
+  // //display chat log if more than 2 people are connected
+  // if(userCount >= 2)
+  // {
+  // socket.emit("chatlog",messages);
+  // }
 
   //Update the user list
   io.emit("updateUserList", users);
 
   //Welcome the user and let everyone know a new user has connected.
-  socket.emit("chat message", createFullMessage(socket.id,"Server",`Welcome ${user_name}`));
-  socket.broadcast.emit('chat message', createFullMessage(socket.id,"Server", `${user_name} has connected`));
+  socket.emit("chat message", socket.id, createFullMessage(socket.id,"Server",`Welcome ${user_name}`));
+  socket.broadcast.emit('chat message', socket.id, createFullMessage(socket.id,"Server", `${user_name} has connected`));
 
   //When received a message, check the message for a username change request, then check for emojis, and send message to all clients
   socket.on('chat message', (msg) => {
   msg = checkMessageForName(socket.id, msg);
+  if(nameExist === true) {
+    socket.emit("chat message", socket.id,createFullMessage(socket.id,"Server","username already exists"));
+    nameExist = false;
+    msg = "My username change request failed";
+  }
+  msg = checkMessageForEmojis(msg);
   checkMessageForColor(msg);
-  socket.emit('personalMessage', createFullMessage(socket.id,user_name,msg));
-  socket.broadcast.emit("chat message", createFullMessage(socket.id,user_name,msg));
+  io.emit("chat message", socket.id, createFullMessage(socket.id,user_name,msg));
  });
 
  //If client disconnects, remove the user from the list, update the user list
@@ -57,7 +62,7 @@ io.on("connection", (socket) => {
    console.log('user disconnected');
    userCount--;
    removeUser(socket.id);
-   io.emit("chat message",createFullMessage("Server", `${user_name} has disconnected`));
+
  });
 });
 
@@ -78,7 +83,7 @@ function removeUser(socketid){
     if(users[i].id === socketid ) {
       let uname = users[i].user_name;
       users.splice(i,1);
-      io.emit("chat message", createFullMessage(socketid,"Server",`${uname} has disconnected`));
+      io.emit("chat message", socketid, createFullMessage(socketid,"Server",`${uname} has disconnected`));
       io.emit("updateUserList", users);
     }
   }
@@ -94,7 +99,13 @@ function checkMessageForName(id, msg){
   if(index > -1) {
     un = msg.substring(index + nameLength,msg.length);
     changeUserName(id,un);
-    return createFullMessage(id,"Server", `username has been changed to ${un}`);
+    if(nameChange === true){
+    return `I changed my username to ${un}`;
+    nameChange = false;
+    }
+    else {
+      return msg;
+    }
   }
   else {
     return msg;
@@ -121,14 +132,24 @@ function createFullMessage(sid,user_nam, msg){
 
 //Change user name
 function changeUserName(sckid, un){
-  for(let i = 0; i < users.length; i++){
-    if(users[i].id === sckid){
-      users[i].user_name = un;
-      user_name = un;
-      nameChange = true;
-      io.emit("updateUserList", users);
+
+  for (let ind = 0; ind < users.length; ind++) {
+    if(users[ind].user_name === un) {
+      nameExist = true;
+      break;
     }
   }
+  if(nameExist === false) {
+    for(let i = 0; i < users.length; i++){
+      if(users[i].id === sckid){
+        users[i].user_name = un;
+        user_name = un;
+        nameChange = true;
+        io.emit("updateUserList", users);
+      }
+    }
+  }
+
 }
 
 //Check message for color
@@ -141,4 +162,26 @@ function checkMessageForColor(msg){
   if(index > -1) {
     color = msg.substring(index + colorLength,msg.length);
   }
+}
+
+function checkMessageForEmojis(msg) {
+  let index = 0;
+  index = msg.indexOf(":)");
+  if(((msg.indexOf(":)")) > -1) || ((msg.indexOf(":(")) > -1) || ((msg.indexOf(":o")) > -1)) {
+
+    if(((msg.indexOf(":)")) > -1)) {
+      msg = msg.replace(":)", "😃" );
+    }
+
+    if(((msg.indexOf(":(")) > -1)) {
+      msg = msg.replace(":(", "😞" );
+    }
+
+    if(((msg.indexOf(":o")) > -1)) {
+      msg = msg.replace(":o", "😲" );
+    }
+
+  }
+  return msg;
+
 }

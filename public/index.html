@@ -1,11 +1,12 @@
 <!doctype html>
 <html>
   <head>
+    <meta charset="UTF-8">
     <title>Chat Room</title>
     <link href = "style.css" rel = "stylesheet"/>
 </head>
 <body>
-<div id = "container">
+
   <div id = "chatSpace">
     <ul id="messages"></ul>
   </div>
@@ -17,7 +18,7 @@
   <form id = "chatBox" action="">
       <input id="clientMessage" autocomplete="off" /><button >Send</button>
   </form>
-</div>
+
   <script src="/socket.io/socket.io.js"></script>
   <script src = "chatRoom.js"></script>
 

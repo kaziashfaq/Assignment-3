@@ -6,11 +6,10 @@
 body {
   height: 100vh;
   width: 960px;
-  font: 13px Helvetica, Arial;
-  background-color: grey;
-  border: 5px;
-  border-color: blue;
-  border-style: solid;
+  font-family: arial;
+  font-size: 13px;
+  background-color: Grey;
+
 }
 #container {
   margin: auto;
@@ -47,8 +46,7 @@ form button {
   list-style-type: none;
   margin: 0;
   padding: 0;
-  overflow: auto;
- }
+}
 #messages li {
   padding: 5px 10px;
 }
