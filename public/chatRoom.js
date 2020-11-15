@@ -4,8 +4,8 @@ const display = document.getElementById("messages");
 const chatSpace = document.getElementById("chatSpace");
 const userList = document.getElementById("usernames");
 const userColr = "Black";
-clientSocket.on("chat message", (id,msg) => {
-  displayMessage(id, msg);
+clientSocket.on("chat message", (id,msg,color) => {
+  displayMessage(id,msg,color);
   chatSpace.scrollTop = chatSpace.scrollHeight;
 });
 
@@ -28,12 +28,14 @@ chat.addEventListener("submit", (evt) => {
 });
 
 //Display message
-function displayMessage(id,msg) {
+function displayMessage(id,msg,color) {
   let item = document.createElement("LI");
   item.appendChild(document.createTextNode(msg));
   if(id === clientSocket.id) {
     item.style.fontWeight = "bold";
   }
+  console.log(`${color}`);
+  item.style.color = `${color}`;
   display.appendChild(item);
 }
 

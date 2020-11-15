@@ -7,7 +7,7 @@ const path = require("path");
 let users = [];
 let messages = []; // Need to be implemented later
 let userCount = 0;
-let userColor = "black";
+let userColor = "#000000";
 let nameChange = false;
 let nameExist = false;
 let newUser = true;
@@ -18,7 +18,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 io.on("connection", (socket) => {
   userCount++;
-
+  userColor = "#000000";
   //Reset chat log on the first user connection
   if(userCount === 1){
     messages.splice(0,messages.length);
@@ -43,22 +43,30 @@ io.on("connection", (socket) => {
 
   //Update the user list
   io.emit("updateUserList", users);
-
+  let tempColor = userColor;
   //Welcome the user and let everyone know a new user has connected.
-  socket.emit("chat message", socket.id, createFullMessage(socket.id,"Server",`Welcome ${user_name}`));
-  socket.broadcast.emit('chat message', socket.id, createFullMessage(socket.id,"Server", `${user_name} has connected`));
+  socket.emit("chat message", socket.id, createFullMessage(socket.id,"Server",`Welcome ${user_name}`),tempColor);
+  socket.broadcast.emit('chat message', socket.id, createFullMessage(socket.id,"Server", `${user_name} has connected`),tempColor);
 
   //When received a message, check the message for a username change request, then check for emojis, and send message to all clients
   socket.on('chat message', (msg) => {
   msg = checkMessageForName(socket.id, msg);
   if(nameExist === true) {
-    socket.emit("chat message", socket.id,createFullMessage(socket.id,"Server","username already exists"));
+    socket.emit("chat message", socket.id,createFullMessage(socket.id,"Server","username already exists"),tempColor);
     nameExist = false;
     msg = "My username change request failed";
   }
   msg = checkMessageForEmojis(msg);
-  checkMessageForColor(msg);
-  io.emit("chat message", socket.id, createFullMessage(socket.id,user_name,msg));
+  msg = checkMessageForColor(socket.id,msg);
+  //retrieve user color
+
+  for(let i = 0; i < users.length; i++){
+    if(users[i].id === socket.id) {
+      tempColor = users[i].userColor;
+      break;
+    }
+  }
+  io.emit("chat message", socket.id, createFullMessage(socket.id,user_name,msg),tempColor);
  });
 
  //If client disconnects, remove the user from the list, update the user list
@@ -87,7 +95,7 @@ function removeUser(socketid){
     if(users[i].id === socketid ) {
       let uname = users[i].user_name;
       users.splice(i,1);
-      io.emit("chat message", socketid, createFullMessage(socketid,"Server",`${uname} has disconnected`));
+      io.emit("chat message", socketid, createFullMessage(socketid,"Server",`${uname} has disconnected`),userColor);
       io.emit("updateUserList", users);
     }
   }
@@ -157,7 +165,7 @@ function changeUserName(sckid, un){
 }
 
 //Check message for color
-function checkMessageForColor(msg){
+function checkMessageForColor(id,msg){
   let index = 0;
   let color = "";
   let colorLength = "/color".length;
@@ -165,12 +173,21 @@ function checkMessageForColor(msg){
 
   if(index > -1) {
     color = msg.substring(index + colorLength,msg.length);
+    userColor = "#"+color.trim();
+    for(let i = 0; i < users.length;i++){
+      if(users[i].id === id) {
+        users[i].userColor = userColor;
+      }
+    }
+    return "User color has been changed";
   }
+
+  return msg;
 }
 
 function checkMessageForEmojis(msg) {
   let index = 0;
-  index = msg.indexOf(":)");
+
   if(((msg.indexOf(":)")) > -1) || ((msg.indexOf(":(")) > -1) || ((msg.indexOf(":o")) > -1)) {
 
     if(((msg.indexOf(":)")) > -1)) {
